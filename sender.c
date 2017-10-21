@@ -7,14 +7,25 @@
 #include <string.h> /* memset */
 #include <unistd.h> /* close */
 
+#define BUFSIZE
 #define PORT 8888
 void kill(char *msg){
     perror(msg);
     exit(1);
 }
+unsigned long fsize(char* file)
+{
+    FILE * f = fopen(file, "r");
+    fseek(f, 0, SEEK_END);
+    unsigned long len = (unsigned long)ftell(f);
+    fclose(f);
+    return len;
+}
 int main(){
     int sock, addr_len;
+    unsigned long file_size;
     struct sockaddr_in my_address, other_address;
+    FILE *fd;
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(sock == -1){
@@ -29,5 +40,19 @@ int main(){
     my_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
 
+    fd = fopen("texto.txt","r");
+    if(fd == NULL){
+        kill("File not found!");
+    }
+
+    file_size = fsize("texto.txt");
+
+    
+    //char *buf = malloc(sizeof(char) *
+    /*
+        COdigo para tratar informaçao recebida
+    */
+    close(fd);
+    close(sock);
     return 0;
 }
