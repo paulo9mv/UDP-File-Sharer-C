@@ -7,32 +7,52 @@
 #include <string.h> /* memset */
 #include <unistd.h> /* close */
 
-#define BUFSIZE
+#define BUFSIZE 101
 #define PORT 8888
+#define FILENAME_SIZE 100
+#define PACKET_SIZE 100
+
 void kill(char *msg){
     perror(msg);
     exit(1);
 }
 unsigned long fsize(char* file)
 {
-    FILE * f = fopen(file, "r");
+    FILE * f = fopen(file, "rb");
     fseek(f, 0, SEEK_END);
     unsigned long len = (unsigned long)ftell(f);
     fclose(f);
     return len;
 }
-int main(){
+int copy_size(unsigned long file_size, int send_qtd){
+    if(file_size - (100 * send_qtd) >= 0)
+        return PACKET_SIZE;
+    else
+        return -1 * (file_size - (100 * send_qtd));
+}
+int hasContent(unsigned int atual, unsigned int file_size){
+    if(atual > file_size)
+        return 0;
+    return 1;
+}
+void enviar(char datagram[]){
+
+}
+int main(int argc, char *argv[]){
     int sock, addr_len;
-    unsigned long file_size;
+    unsigned long file_size, start = 0, size, packets_send = 0;
     struct sockaddr_in my_address, other_address;
     FILE *fd;
 
+    char buffer[BUFSIZE];
+
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if(sock == -1){
+    if(sock == -1)
         kill("Socket error!");
-    }
+
 
     addr_len = sizeof(struct sockaddr_in);
+
 
     memset((char *)&my_address, 0, addr_len); //zera a memoria
     my_address.sin_family = AF_INET;
@@ -40,19 +60,37 @@ int main(){
     my_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
 
-    fd = fopen("texto.txt","r");
-    if(fd == NULL){
+    fd = fopen(argv[0],"rb");
+    if(fd == NULL)
         kill("File not found!");
+
+    file_size = fsize(argv[0]);
+
+    char *file = malloc(sizeof(char) * file_size);
+
+    if(file == NULL)
+        kill("Memory error!");
+    if(fread(file, 1, file_size, fd) != file_size)
+        kill("Copy error!");
+
+    while(hasContent(start, file_size)){
+        size = copy_size(file_size, packets_send);
+        strncpy(buffer, file + start, size);
+        start += size;
+
+        enviar(buffer);
+
+        packets_send++;
     }
 
-    file_size = fsize("texto.txt");
-
-    
-    //char *buf = malloc(sizeof(char) *
     /*
         COdigo para tratar informaçao recebida
     */
-    close(fd);
-    close(sock);
+    if (fclose(fd) != 0){
+        kill("Error during file closing!");
+    }
+    if(close(sock) != 0){
+        kill("Error during socket closing!");
+    }
     return 0;
 }
