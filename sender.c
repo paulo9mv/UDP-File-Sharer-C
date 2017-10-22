@@ -7,7 +7,7 @@
 #include <string.h> /* memset */
 #include <unistd.h> /* close */
 
-#define BUFSIZE 101
+#define BUFSIZE 103
 #define PORT 8888
 #define FILENAME_SIZE 100
 #define PACKET_SIZE 100
@@ -25,22 +25,29 @@ unsigned long fsize(char* file)
     return len;
 }
 int copy_size(unsigned long file_size, int send_qtd){
-    if(file_size - (100 * send_qtd) >= 0)
+    if(file_size > PACKET_SIZE * send_qtd)
         return PACKET_SIZE;
     else
-        return -1 * (file_size - (100 * send_qtd));
+        return PACKET_SIZE + file_size - (PACKET_SIZE*send_qtd);
 }
-int hasContent(unsigned int atual, unsigned int file_size){
-    if(atual > file_size)
+int hasContent(unsigned int atual, unsigned long file_size, int size){
+    if(atual >= file_size && size == 0)
         return 0;
     return 1;
 }
+char ack(char atual){
+    if (atual == '1')
+        return '0';
+    return '1';
+}
 void enviar(char datagram[]){
-
+    //enviar com sendto
+    printf("Enviou\n");
 }
 int main(int argc, char *argv[]){
     int sock, addr_len;
     unsigned long file_size, start = 0, size, packets_send = 0;
+    char atual_ack = '1';
     struct sockaddr_in my_address, other_address;
     FILE *fd;
 
@@ -60,25 +67,36 @@ int main(int argc, char *argv[]){
     my_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
 
-    fd = fopen(argv[0],"rb");
+    fd = fopen("texto.txt","rb");
     if(fd == NULL)
         kill("File not found!");
 
-    file_size = fsize(argv[0]);
+    //file_size = fsize("texto.txt");
+    file_size = 200;
+    printf("file_size = %ld\n\n",file_size);
 
-    char *file = malloc(sizeof(char) * file_size);
+    char *file = malloc(sizeof(char) * file_size + 1);
 
     if(file == NULL)
         kill("Memory error!");
     if(fread(file, 1, file_size, fd) != file_size)
         kill("Copy error!");
 
-    while(hasContent(start, file_size)){
-        size = copy_size(file_size, packets_send);
-        strncpy(buffer, file + start, size);
+    file[file_size] = '\0';
+
+    while(hasContent(start, file_size, size)){
+        size = copy_size(file_size, packets_send + 1);
+
+        atual_ack = ack(atual_ack);
+        buffer[0] = atual_ack;
+
+        if(size > 0)
+            strncpy(buffer + 1, file + start, size);
+
         start += size;
 
         enviar(buffer);
+        memset(buffer, 0, BUFSIZE);
 
         packets_send++;
     }
@@ -92,5 +110,7 @@ int main(int argc, char *argv[]){
     if(close(sock) != 0){
         kill("Error during socket closing!");
     }
+
+    free(file);
     return 0;
 }
