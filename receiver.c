@@ -12,7 +12,7 @@ void kill(char *msg){
     perror(msg);
     exit(1);
 }
-int main(){
+int main(int argc, char *argv[]){
     int sock, addr_len;
     struct sockaddr_in my_address, other_address;
 

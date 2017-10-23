@@ -8,7 +8,7 @@
 #include <unistd.h> /* close */
 
 #define BUFSIZE 103
-#define PORT 8888
+#define PORT 68
 #define FILENAME_SIZE 100
 #define PACKET_SIZE 100
 
@@ -45,35 +45,31 @@ void enviar(char datagram[]){
     printf("Enviou\n");
 }
 int main(int argc, char *argv[]){
-    int sock, addr_len;
+    int sock;
+    socklen_t addr_len;
     unsigned long file_size, start = 0, size, packets_send = 0;
     char atual_ack = '1';
     struct sockaddr_in my_address, other_address;
     FILE *fd;
-
     char buffer[BUFSIZE];
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(sock == -1)
         kill("Socket error!");
 
-
     addr_len = sizeof(struct sockaddr_in);
 
-
     memset((char *)&my_address, 0, addr_len); //zera a memoria
-    my_address.sin_family = AF_INET;
-    my_address.sin_port = htons(PORT);
-    my_address.sin_addr.s_addr = htonl(INADDR_ANY);
+    other_address.sin_family = AF_INET;
+    other_address.sin_port = htons(PORT);
+    other_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 
     fd = fopen("texto.txt","rb");
     if(fd == NULL)
         kill("File not found!");
 
-    //file_size = fsize("texto.txt");
-    file_size = 200;
-    printf("file_size = %ld\n\n",file_size);
+    file_size = fsize("texto.txt");
 
     char *file = malloc(sizeof(char) * file_size + 1);
 
@@ -95,21 +91,23 @@ int main(int argc, char *argv[]){
 
         start += size;
 
-        enviar(buffer);
+        if(sendto(sock, buffer, (unsigned long) (size + 1), 0, (struct sockaddr*)&other_address, addr_len) == -1)
+            kill("Send failed!");
+        else
+            printf("Sucessful sent %ld bytes!\n", size+1);
+
         memset(buffer, 0, BUFSIZE);
 
         packets_send++;
     }
-
     /*
         COdigo para tratar informaçao recebida
     */
-    if (fclose(fd) != 0){
+    if (fclose(fd) != 0)
         kill("Error during file closing!");
-    }
-    if(close(sock) != 0){
+
+    if(close(sock) != 0)
         kill("Error during socket closing!");
-    }
 
     free(file);
     return 0;
