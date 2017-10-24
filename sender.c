@@ -3,6 +3,7 @@
 #include<sys/socket.h>
 #include<netinet/in.h>
 #include<netinet/udp.h>
+#include <arpa/inet.h>
 #include<sys/types.h>
 #include <string.h> /* memset */
 #include <unistd.h> /* close */
@@ -11,6 +12,8 @@
 #define PORT 68
 #define FILENAME_SIZE 100
 #define PACKET_SIZE 100
+
+unsigned long packets_to_send;
 
 void kill(char *msg){
     perror(msg);
@@ -30,10 +33,15 @@ int copy_size(unsigned long file_size, int send_qtd){
     else
         return PACKET_SIZE + file_size - (PACKET_SIZE*send_qtd);
 }
-int hasContent(unsigned int atual, unsigned long file_size, int size){
-    if(atual >= file_size && size == 0)
+int hasContent(){
+    packets_to_send--;
+
+    if(packets_to_send == 0)
         return 0;
     return 1;
+}
+unsigned long packets_counter(unsigned long file_size){
+    return (file_size/PACKET_SIZE) + 1;
 }
 char ack(char atual){
     if (atual == '1')
@@ -70,8 +78,9 @@ int main(int argc, char *argv[]){
         kill("File not found!");
 
     file_size = fsize("texto.txt");
+    packets_to_send = packets_counter(file_size);
 
-    char *file = malloc(sizeof(char) * file_size + 1);
+    char *file = malloc((sizeof(char) * file_size) + 1);
 
     if(file == NULL)
         kill("Memory error!");
@@ -80,7 +89,7 @@ int main(int argc, char *argv[]){
 
     file[file_size] = '\0';
 
-    while(hasContent(start, file_size, size)){
+    while(hasContent()){
         size = copy_size(file_size, packets_send + 1);
 
         atual_ack = ack(atual_ack);
