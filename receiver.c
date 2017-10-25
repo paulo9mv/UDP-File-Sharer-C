@@ -16,12 +16,18 @@ typedef int bool;
 #define false 0
 #define PORT 67
 #define BUFSIZE 101
+#define IP_DESTINY "255.255.255.255"
 #define SOCKET_ERROR -1
 #define SOCKET_READ_TIMEOUT_SEC 2
 
 void kill(char *msg){
     perror(msg);
     exit(1);
+}
+char ack(char atual){
+    if (atual == '1')
+        return '0';
+    return '1';
 }
 int main(int argc, char *argv[]){
     int sock, rv;
@@ -30,6 +36,7 @@ int main(int argc, char *argv[]){
     socklen_t addr_len = sizeof(struct sockaddr_in);
     fd_set set;
     struct timeval timeout;
+    char ack[1];
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(sock == -1){
@@ -50,28 +57,36 @@ int main(int argc, char *argv[]){
 
     FD_ZERO(&set); //limpa o set
     FD_SET(sock, &set); //Une o socket com o set
-    timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
-    timeout.tv_usec = 0;
+
     bool enable_send = true;
 
     while(enable_send){
-    rv = select(sock + 1, &set, NULL, NULL, &timeout);
+        timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
+        timeout.tv_usec = 0;
+        rv = select(sock + 1, &set, NULL, NULL, &timeout);
 
-    if (rv == SOCKET_ERROR)
-        kill("Socket error!");
-    else if (rv == 0)
-        printf("Timeout expired!");
-    else{
-        received = recvfrom(sock, buf, BUFSIZE, 0, (struct sockaddr*)&my_address, &addr_len);
-        if (received == SOCKET_ERROR)
-            kill("Error receiving!");
+        if (rv == SOCKET_ERROR)
+            kill("Socket error!");
+        else if (rv == 0)
+            printf("Timeout expired!");
         else{
-            if(received != BUFSIZE)
-                enable_send = false;
+            received = recvfrom(sock, buf, BUFSIZE, 0, (struct sockaddr*)&my_address, &addr_len);
+            if (received == SOCKET_ERROR)
+                kill("Error receiving!");
+            else{
+                if(received != BUFSIZE)
+                    enable_send = false;
             printf("Recebido com sucesso! %ld bytes!\n%s\n",received,buf);
+                other_address.sin_family = AF_INET;
+                other_address.sin_port = htons(ntohs(my_address.sin_port));
+                other_address.sin_addr.s_addr = inet_addr(IP_DESTINY);
+                ack[0] = buf[0] + 2;
+                if(sendto(sock, ack,(unsigned long) 1, 0, (struct sockaddr*)&other_address, addr_len) == -1){
+                    kill("Ack response failed!\n");
+                }
+            }
         }
     }
-}
 
     close(sock);
     return 0;
