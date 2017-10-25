@@ -70,6 +70,8 @@ int main(int argc, char *argv[]){
     FILE *fd;
     char buffer[BUFSIZE];
     bool enable_send = true;
+    int packs_to_expire = 0;
+    ssize_t received;
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(sock == -1)
@@ -105,12 +107,8 @@ int main(int argc, char *argv[]){
 
     FD_ZERO(&set); //limpa o set
     FD_SET(sock, &set); //Une o socket com o set
-    timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
-    timeout.tv_usec = 0;
 
     printf("Iniciando transferencia...\n");
-    int packs_to_expire = 0;
-    ssize_t received;
 
     while(hasContent()){
         size = copy_size(file_size, packets_send + 1);
@@ -124,10 +122,13 @@ int main(int argc, char *argv[]){
         start += size;
 
         while(enable_send && packs_to_expire != 10){
-        if(sendto(sock, buffer, (unsigned long) (size + 1), 0, (struct sockaddr*)&other_address, addr_len) == -1)
-            kill("Send failed!");
-        else
-            printf("%ld bytes enviados com sucesso!\n", size + 1);
+            if(sendto(sock, buffer, (unsigned long) (size + 1), 0, (struct sockaddr*)&other_address, addr_len) == -1)
+                kill("Send failed!");
+            else
+                printf("%ld bytes enviados com sucesso!\n", size + 1);
+
+                timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
+                timeout.tv_usec = 0;
 
         rv = select(sock + 1, &set, NULL, NULL, &timeout);
 
@@ -139,24 +140,28 @@ int main(int argc, char *argv[]){
         }
         else{
             received = recvfrom(sock, buffer, BUFSIZE, 0, (struct sockaddr*)&my_address, &addr_len);
+            packs_to_expire = 0;
             if (received == SOCKET_ERROR)
                 kill("Error receiving!");
             else{
-                if(buffer[0] == atual_ack){
+                if(buffer[0] == (atual_ack + 2)){
                     enable_send = false;
-                    //Ack recebido com sucesso
+                    printf("Ack recebido com sucesso!\n");
                 }
-                printf("Ack com sucesso! %ld bytes!\n%s\n",received,buffer);
             }
         }
+        //zerar timer
         }
         enable_send = true;
+        if(packs_to_expire == 10){
+            kill("No response! Stopping!");
+        }
         memset(buffer, 0, BUFSIZE);
 
         packets_send++;
     }
 
-    if (fclose(fd) != 0)
+    if(fclose(fd) != 0)
         kill("Error during file closing!");
 
     if(close(sock) != 0)
