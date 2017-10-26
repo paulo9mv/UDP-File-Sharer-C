@@ -64,7 +64,7 @@ char ack(char atual){
 int main(int argc, char *argv[]){
 
     if(argc != 4){
-        kill("Missing arguments! Filename | IP | Port");
+        kill("Missing arguments! <filename><ip><port>");
     }
 
     int sock;
