@@ -62,6 +62,11 @@ char ack(char atual){
     return '1';
 }
 int main(int argc, char *argv[]){
+
+    if(argc != 4){
+        kill("Missing arguments! Filename | IP | Port");
+    }
+
     int sock;
     socklen_t addr_len;
     unsigned long file_size, start = 0, size, packets_send = 0;
@@ -81,8 +86,8 @@ int main(int argc, char *argv[]){
 
     memset((char *)&my_address, 0, addr_len); //zera a memoria
     other_address.sin_family = AF_INET;
-    other_address.sin_port = htons(PORT);
-    other_address.sin_addr.s_addr = inet_addr(IP_DESTINY);
+    other_address.sin_port = htons(atoi(argv[3]));
+    other_address.sin_addr.s_addr = inet_addr(argv[2]);
 
     my_address.sin_family = AF_INET;
     my_address.sin_port = htons(6000);
@@ -92,12 +97,12 @@ int main(int argc, char *argv[]){
         kill("Bind error!");
     }
 
-    fd = fopen(FILENAME,"rb");
+    fd = fopen(argv[1],"rb");
 
     if(fd == NULL)
         kill("File not found!");
 
-    file_size = fsize(FILENAME);
+    file_size = fsize(argv[1]);
     packets_to_send = packets_counter(file_size);
 
     char *file = malloc((sizeof(char) * file_size) + 1);

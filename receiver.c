@@ -31,6 +31,11 @@ char ack(char atual){
     return '1';
 }
 int main(int argc, char *argv[]){
+
+    if(argc != 2){
+        kill("Missing arguments! Dest port!");
+    }
+
     int sock, rv;
     struct sockaddr_in my_address, other_address;
     char buf[BUFSIZE];
@@ -48,7 +53,7 @@ int main(int argc, char *argv[]){
 
     memset((char *)&my_address, 0, addr_len); //zera a memoria
     my_address.sin_family = AF_INET;
-    my_address.sin_port = htons(PORT);
+    my_address.sin_port = htons(atoi(argv[1]));
     my_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if(bind(sock, (struct sockaddr*)&my_address, addr_len) == -1){
