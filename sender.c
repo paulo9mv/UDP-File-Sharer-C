@@ -20,7 +20,7 @@ typedef int bool;
 #define IP_DESTINY "255.255.255.255"
 #define SOCKET_ERROR -1
 #define SOCKET_READ_TIMEOUT_SEC 2
-#define FILENAME "imagem.JPG"
+#define FILENAME "texto.txt"
 
 struct timer{
     double tempo;
@@ -163,7 +163,6 @@ int main(int argc, char *argv[]){
                 }
             }
         }
-        //zerar timer
         }
         enable_send = true;
         if(packs_to_expire == 10){

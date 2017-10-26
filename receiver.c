@@ -19,6 +19,7 @@ typedef int bool;
 #define IP_DESTINY "255.255.255.255"
 #define SOCKET_ERROR -1
 #define SOCKET_READ_TIMEOUT_SEC 2
+#define DEFAULT_FILE_NAME "new_file"
 
 void kill(char *msg){
     perror(msg);
@@ -36,7 +37,9 @@ int main(int argc, char *argv[]){
     socklen_t addr_len = sizeof(struct sockaddr_in);
     fd_set set;
     struct timeval timeout;
-    char ack[1];
+    char ack_flag[1];
+    char atual_ack = '0';
+    FILE *fd;
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(sock == -1){
@@ -59,11 +62,22 @@ int main(int argc, char *argv[]){
     FD_SET(sock, &set); //Une o socket com o set
 
     bool enable_send = true;
+    bool first_pack = true;
     timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
     timeout.tv_usec = 0;
 
     while(enable_send){
             received = recvfrom(sock, buf, BUFSIZE, 0, (struct sockaddr*)&my_address, &addr_len);
+            if(first_pack){
+                printf("Checando a existencia do arquivo!\n");
+                fd = fopen(DEFAULT_FILE_NAME, "r");
+                if(fd == NULL){
+                    fd = fopen(DEFAULT_FILE_NAME, "w");
+                }
+                else
+                    kill("File already exists! Aborting!");
+                first_pack = false;
+            }
             if (received == SOCKET_ERROR)
                 kill("Error receiving!");
             else{
@@ -73,17 +87,24 @@ int main(int argc, char *argv[]){
                 other_address.sin_family = AF_INET;
                 other_address.sin_port = htons(ntohs(my_address.sin_port));
                 other_address.sin_addr.s_addr = inet_addr(IP_DESTINY);
-                ack[0] = buf[0] + 2;
-                if(sendto(sock, ack,(unsigned long) 1, 0, (struct sockaddr*)&other_address, addr_len) == -1){
+                if(buf[0] == atual_ack){
+                    atual_ack = ack(atual_ack);
+                    fwrite(buf + 1, received - 1, 1, fd);
+                }
+
+                ack_flag[0] = buf[0] + 2;
+
+                if(sendto(sock, ack_flag,(unsigned long) 1, 0, (struct sockaddr*)&other_address, addr_len) == -1){
                     kill("Ack response failed!\n");
                 }
                 else{
                     printf("Ack respondido!\n");
                 }
-            
+
         }
     }
 
+    fclose(fd);
     close(sock);
     return 0;
 }
