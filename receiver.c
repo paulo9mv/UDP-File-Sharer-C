@@ -59,17 +59,10 @@ int main(int argc, char *argv[]){
     FD_SET(sock, &set); //Une o socket com o set
 
     bool enable_send = true;
+    timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
+    timeout.tv_usec = 0;
 
     while(enable_send){
-        timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
-        timeout.tv_usec = 0;
-        rv = select(sock + 1, &set, NULL, NULL, &timeout);
-
-        if (rv == SOCKET_ERROR)
-            kill("Socket error!");
-        else if (rv == 0)
-            printf("Timeout expired!");
-        else{
             received = recvfrom(sock, buf, BUFSIZE, 0, (struct sockaddr*)&my_address, &addr_len);
             if (received == SOCKET_ERROR)
                 kill("Error receiving!");
@@ -84,7 +77,10 @@ int main(int argc, char *argv[]){
                 if(sendto(sock, ack,(unsigned long) 1, 0, (struct sockaddr*)&other_address, addr_len) == -1){
                     kill("Ack response failed!\n");
                 }
-            }
+                else{
+                    printf("Ack respondido!\n");
+                }
+            
         }
     }
 

@@ -20,7 +20,7 @@ typedef int bool;
 #define IP_DESTINY "255.255.255.255"
 #define SOCKET_ERROR -1
 #define SOCKET_READ_TIMEOUT_SEC 2
-#define FILENAME "texto.txt"
+#define FILENAME "imagem.JPG"
 
 struct timer{
     double tempo;
@@ -84,6 +84,14 @@ int main(int argc, char *argv[]){
     other_address.sin_port = htons(PORT);
     other_address.sin_addr.s_addr = inet_addr(IP_DESTINY);
 
+    my_address.sin_family = AF_INET;
+    my_address.sin_port = htons(6000);
+    my_address.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if(bind(sock, (struct sockaddr*)&my_address, addr_len) == -1){
+        kill("Bind error!");
+    }
+
     fd = fopen(FILENAME,"rb");
 
     if(fd == NULL)
@@ -109,6 +117,8 @@ int main(int argc, char *argv[]){
     FD_SET(sock, &set); //Une o socket com o set
 
     printf("Iniciando transferencia...\n");
+    timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
+    timeout.tv_usec = 0;
 
     while(hasContent()){
         size = copy_size(file_size, packets_send + 1);
@@ -127,8 +137,9 @@ int main(int argc, char *argv[]){
             else
                 printf("%ld bytes enviados com sucesso!\n", size + 1);
 
-                timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
-                timeout.tv_usec = 0;
+            timeout.tv_usec = 0;
+            timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
+
 
         rv = select(sock + 1, &set, NULL, NULL, &timeout);
 
@@ -141,12 +152,14 @@ int main(int argc, char *argv[]){
         else{
             received = recvfrom(sock, buffer, BUFSIZE, 0, (struct sockaddr*)&my_address, &addr_len);
             packs_to_expire = 0;
+
             if (received == SOCKET_ERROR)
                 kill("Error receiving!");
             else{
+                enable_send = false;
                 if(buffer[0] == (atual_ack + 2)){
                     enable_send = false;
-                    printf("Ack recebido com sucesso!\n");
+                    printf("Ack %c recebido com sucesso!\n", buffer[0]);
                 }
             }
         }
@@ -157,7 +170,7 @@ int main(int argc, char *argv[]){
             kill("No response! Stopping!");
         }
         memset(buffer, 0, BUFSIZE);
-
+        packs_to_expire = 0;
         packets_send++;
     }
 
