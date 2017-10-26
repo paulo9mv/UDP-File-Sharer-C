@@ -51,6 +51,9 @@ int main(int argc, char *argv[]){
         kill("Socket error!");
     }
 
+int on=1;
+setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on));
+
     memset((char *)&my_address, 0, addr_len); //zera a memoria
     my_address.sin_family = AF_INET;
     my_address.sin_port = htons(atoi(argv[1]));

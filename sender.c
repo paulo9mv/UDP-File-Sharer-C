@@ -82,6 +82,9 @@ int main(int argc, char *argv[]){
     if(sock == -1)
         kill("Socket error!");
 
+	int on=1;
+setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on));
+
     addr_len = sizeof(struct sockaddr_in);
 
     memset((char *)&my_address, 0, addr_len); //zera a memoria
@@ -90,7 +93,7 @@ int main(int argc, char *argv[]){
     other_address.sin_addr.s_addr = inet_addr(argv[2]);
 
     my_address.sin_family = AF_INET;
-    my_address.sin_port = htons(6000);
+    my_address.sin_port = htons(3000);
     my_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if(bind(sock, (struct sockaddr*)&my_address, addr_len) == -1){
