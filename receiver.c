@@ -17,7 +17,7 @@ typedef int bool;
 #define IP_DESTINY "255.255.255.255"
 #define SOCKET_ERROR -1
 #define SOCKET_READ_TIMEOUT_SEC 2
-#define DEFAULT_FILE_NAME "new_file.txt"
+#define DEFAULT_FILE_NAME "new_file"
 
 void kill(char *msg){
     perror(msg);
