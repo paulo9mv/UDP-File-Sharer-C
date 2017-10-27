@@ -3,11 +3,11 @@
 #include<sys/socket.h>
 #include<netinet/in.h>
 #include<netinet/udp.h>
-#include <arpa/inet.h>
+#include<arpa/inet.h>
 #include<sys/types.h>
-#include <string.h> /* memset */
-#include <unistd.h> /* close */
-#include <time.h>
+#include<string.h> /* memset */
+#include<unistd.h> /* close */
+#include<time.h>
 
 typedef int bool;
 #define true 1
@@ -219,7 +219,6 @@ int main(int argc, char *argv[]){
         timeout.tv_usec = 0;
         timeout.tv_sec = SOCKET_READ_TIMEOUT_SEC;
     }
-
 
     if(fclose(fd) != 0)
         kill("Error during file closing!");
