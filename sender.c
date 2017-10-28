@@ -32,11 +32,10 @@ void kill(char *msg){
 }
 
 //Determina o tamanho do arquivo em bytes
-unsigned long fsize(char* file){
-    FILE * f = fopen(file, "rb");
-    fseek(f, 0, SEEK_END);
-    unsigned long len = (unsigned long)ftell(f);
-    fclose(f);
+unsigned long fsize(FILE **f){
+    fseek(*f, 0, SEEK_END);
+    unsigned long len = (unsigned long)ftell(*f);
+    rewind(*f);
     return len;
 }
 
@@ -113,7 +112,7 @@ int main(int argc, char *argv[]){
         kill("File not found!");
 
     //Determina o tamanho do arquivo e qtos pacotes precisará p/ envio
-    file_size = fsize(argv[1]);
+    file_size = fsize(&fd);
     packets_to_send = packets_counter(file_size);
 
     //Aloca um buffer e copia os dados do arquivo para este buffer
