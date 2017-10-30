@@ -17,7 +17,7 @@ typedef int bool;
 #define IP_DESTINY "255.255.255.255"
 #define SOCKET_ERROR -1
 #define SOCKET_READ_TIMEOUT_SEC 2
-#define DEFAULT_FILE_NAME "new_file"
+#define DEFAULT_FILE_NAME "new_file.JPG"
 
 void kill(char *msg){
     perror(msg);
@@ -75,9 +75,9 @@ int main(int argc, char *argv[]){
 
         //Checa se o arquivo existe, caso contrario, cria
         if(first_pack){
-            fd = fopen(DEFAULT_FILE_NAME, "r");
+            fd = fopen(DEFAULT_FILE_NAME, "rb");
             if(fd == NULL)
-                fd = fopen(DEFAULT_FILE_NAME, "w");
+                fd = fopen(DEFAULT_FILE_NAME, "wb");
             else
                 kill("File already exists! Aborting!");
             printf("Iniciando transferencia!\n");

@@ -73,7 +73,7 @@ int main(int argc, char *argv[]){
     int sock, rv, packs_to_expire = 0, on = 1;
     socklen_t addr_len = sizeof(struct sockaddr_in);
     unsigned long file_size, start = 0, size, packets_send = 0;
-    char atual_ack = '1';
+    char atual_ack = '0';
     struct sockaddr_in my_address, other_address;
     FILE *fd;
     char buffer[BUFSIZE];
@@ -117,6 +117,7 @@ int main(int argc, char *argv[]){
 
     //Aloca um buffer e copia os dados do arquivo para este buffer
     char *file = malloc((sizeof(char) * file_size) + 1);
+
     if(file == NULL)
         kill("Memory error!");
     if(fread(file, 1, file_size, fd) != file_size)
@@ -142,7 +143,6 @@ int main(int argc, char *argv[]){
         size = copy_size(file_size, packets_send + 1);
 
         //Atualiza o ack
-        atual_ack = ack(atual_ack);
         buffer[0] = atual_ack;
 
         //Copia para o buffer de envio os dados correspondentes ao buffer do arquivo
@@ -188,11 +188,12 @@ int main(int argc, char *argv[]){
 
                     //Confere se é o ACK correto
                     if(buffer[0] == (atual_ack + 2)){
+                        atual_ack = ack(atual_ack);
                         enable_send = false;
                         printf("Ack %c recebido com sucesso!\n", buffer[0]);
                     }
 
-                    //Caso contratio, incrementa o numero de tentativas
+                    //Caso contrario, incrementa o numero de tentativas
                     else{
                         packs_to_expire++;
                         printf("Not an ack! Sending again! %d try!\n", packs_to_expire);
