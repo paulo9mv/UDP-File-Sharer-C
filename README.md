@@ -34,7 +34,7 @@ For receiver choose the port to listen.
 
 ## Changing parameters
 
-You can (and should!) change *#define# parameters into source-code. Change IP_DESTINY, PACKETSIZE, BUFSIZE and DEFAULT_FILE_NAME to what you need.
+You can (and should!) change *#define#* parameters into source-code. Change IP_DESTINY, PACKETSIZE, BUFSIZE and DEFAULT_FILE_NAME to what you need.
 
 ## Contact
 
