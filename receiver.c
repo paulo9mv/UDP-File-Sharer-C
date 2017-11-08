@@ -14,7 +14,6 @@ typedef int bool;
 #define true 1
 #define false 0
 #define BUFSIZE 101
-#define IP_DESTINY "255.255.255.255"
 #define SOCKET_ERROR -1
 #define SOCKET_READ_TIMEOUT_SEC 2
 #define DEFAULT_FILE_NAME "new_file"
@@ -95,7 +94,7 @@ int main(int argc, char *argv[]){
             //Determina os parametros da origem
             other_address.sin_family = AF_INET;
             other_address.sin_port = htons(ntohs(my_address.sin_port));
-            other_address.sin_addr.s_addr = inet_addr(IP_DESTINY);
+            other_address.sin_addr.s_addr = inet_addr(inet_ntoa(my_address.sin_addr));
 
             //Se ack estiver OK, escreve no arquivo os bytes recebidos
             if(buf[0] == atual_ack){
