@@ -13,7 +13,7 @@ typedef int bool;
 #define true 1
 #define false 0
 
-#define BUFSIZE 102
+#define BUFSIZE 101
 #define PACKET_SIZE 100
 
 #define DEFAULT_PORT 3000
