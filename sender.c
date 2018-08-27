@@ -116,7 +116,7 @@ int main(int argc, char *argv[]){
     packets_to_send = packets_counter(file_size);
 
     //Aloca um buffer e copia os dados do arquivo para este buffer
-    char *file = malloc((sizeof(char) * file_size) + 1);
+    char *file = malloc((sizeof(char) * file_size));
 
     if(file == NULL)
         kill("Memory error!");
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]){
         kill("Copy error!");
 
     //Transforma em string para usar strncpy
-    file[file_size] = '\0';
+    //file[file_size] = '\0';
 
     FD_ZERO(&set); //limpa a variavel set para select()
     FD_SET(sock, &set); //Une o socket com o set
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]){
 
         //Copia para o buffer de envio os dados correspondentes ao buffer do arquivo
         if(size > 0)
-            strncpy(buffer + 1, file + start, size);
+            memcpy(buffer + 1, file + start, size);
 
         //Incrementa o ponteiro para o buffer do arquivo
         start += size;
