@@ -40,6 +40,6 @@ Change PACKETSIZE, BUFSIZE and DEFAULT_FILE_NAME to what you need.
 
 ## Contact
 
-**Paulo Vítor** - paulo9mv@yahoo.com.br
+**Paulo Vítor**
 
 *Computer Engineering Student at UFMT - Várzea Grande - Brasil*
